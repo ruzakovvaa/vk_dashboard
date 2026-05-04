@@ -1,0 +1,43 @@
+{
+  "response": {
+    "count": 3,
+    "items": [
+      {
+        "id": 1001,
+        "owner_id": -123456,
+        "date": 1746000000,
+        "text": "Тестовый пост с фото",
+        "post_type": "post",
+        "attachments": [{"type": "photo", "photo": {"id": 1}}],
+        "likes": {"count": 150},
+        "comments": {"count": 10},
+        "reposts": {"count": 5},
+        "views": {"count": 5000}
+      },
+      {
+        "id": 1002,
+        "owner_id": -123456,
+        "date": 1745913600,
+        "text": "Тестовый пост с видео",
+        "post_type": "post",
+        "attachments": [{"type": "video", "video": {"id": 2}}, {"type": "photo", "photo": {"id": 3}}],
+        "likes": {"count": 200},
+        "comments": {"count": 20},
+        "reposts": {"count": 8},
+        "views": {"count": 8000}
+      },
+      {
+        "id": 1003,
+        "owner_id": -123456,
+        "date": 1745827200,
+        "text": "Текстовый пост без вложений",
+        "post_type": "post",
+        "attachments": [],
+        "likes": {"count": 50},
+        "comments": {"count": 5},
+        "reposts": {"count": 2},
+        "views": {"count": 2000}
+      }
+    ]
+  }
+}
