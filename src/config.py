@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     dash_port: int = 8050
     dash_debug: bool = True
 
+    #собирает строку подключения к базе данных из отдельных частей
     @property
     def db_url(self) -> str:
         return (

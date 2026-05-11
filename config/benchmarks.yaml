@@ -1,0 +1,51 @@
+# Эталонные значения метрик для сообществ ВКонтакте с аудиторией >1 млн подписчиков
+# Источник: Popsters Social Media Users Activity Global Report 2023, с. 42
+# Олухов Н.В., 2025
+
+audience_segment: ">1M"
+
+benchmarks:
+  er_post:
+    norm: 0.06       # %
+    label: "ERpost"
+    source: "Popsters 2023, с. 42"
+
+  er_day:
+    norm: 0.59       # %
+    label: "ERday"
+    source: "Popsters 2023, с. 42"
+
+  er_view:
+    norm: 2.0        # %
+    label: "ERview"
+    source: "Popsters 2023 (диапазон 2–6% для VK)"
+
+  love_rate:
+    norm: 0.05       # %
+    label: "Love Rate"
+    source: "расчётно от ERpost (≈80–90% от ER)"
+
+  talk_rate:
+    norm: 0.005      # %
+    label: "Talk Rate"
+    source: "расчётно от ERpost (≈5–10% от ER)"
+
+  vr_post:
+    norm: 80.0       # %
+    label: "VRpost"
+    source: "Олухов Н.В., 2025"
+
+  vr_day:
+    norm: 60.0       # %
+    label: "VRday"
+    source: "Олухов Н.В., 2025"
+
+# Пороги цветовой индикации (множитель от нормы)
+thresholds:
+  green: 1.2    # >= 1.2 × норма → зелёный
+  yellow_low: 0.8  # [0.8; 1.2) × норма → жёлтый
+  # < 0.8 × норма → красный
+
+# Оценочный охват репоста (доля от охвата исходного поста)
+# Используется как прокси виральности при отсутствии прав администратора
+repost_reach_factor: 0.40

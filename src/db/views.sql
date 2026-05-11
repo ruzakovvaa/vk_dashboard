@@ -290,3 +290,136 @@ WHERE post_date BETWEEN p_date_from AND p_date_to
 GROUP BY day_of_week, hour_of_day
 ORDER BY day_of_week, hour_of_day;
 $$;
+
+
+-- =============================================================================
+-- daily_absolute: суммарные показатели по дням для спарклайнов.
+-- =============================================================================
+CREATE OR REPLACE FUNCTION daily_absolute(p_date_from date, p_date_to date)
+RETURNS TABLE (
+    post_date        date,
+    total_views      bigint,
+    total_reactions  bigint,
+    total_comments   bigint,
+    total_reposts    bigint,
+    posts_count      bigint
+) LANGUAGE sql STABLE AS $$
+SELECT
+    post_date,
+    SUM(views_count)::bigint,
+    SUM(reactions_total)::bigint,
+    SUM(comments_count)::bigint,
+    SUM(reposts_count)::bigint,
+    COUNT(*)::bigint
+FROM posts_view
+WHERE post_date BETWEEN p_date_from AND p_date_to
+GROUP BY post_date
+ORDER BY post_date;
+$$;
+
+
+-- =============================================================================
+-- subscribers_delta: динамика подписчиков за период.
+-- Использует таблицу groups_raw как историю снапшотов подписчиков.
+-- =============================================================================
+CREATE OR REPLACE FUNCTION subscribers_delta(p_group_id bigint, p_date_from date, p_date_to date)
+RETURNS TABLE (
+    n_start  bigint,
+    n_end    bigint,
+    delta    bigint,
+    delta_pct numeric
+) LANGUAGE sql STABLE AS $$
+WITH
+  snap_start AS (
+      SELECT members_count
+        FROM groups_raw
+       WHERE group_id = p_group_id
+         AND snapshot_at::date <= p_date_from
+       ORDER BY snapshot_at DESC
+       LIMIT 1
+  ),
+  snap_end AS (
+      SELECT members_count
+        FROM groups_raw
+       WHERE group_id = p_group_id
+         AND snapshot_at::date <= p_date_to
+       ORDER BY snapshot_at DESC
+       LIMIT 1
+  )
+SELECT
+    COALESCE(s.members_count, e.members_count)::bigint AS n_start,
+    e.members_count::bigint                            AS n_end,
+    (e.members_count - COALESCE(s.members_count, e.members_count))::bigint AS delta,
+    CASE WHEN COALESCE(s.members_count, 0) = 0 THEN NULL
+         ELSE ROUND(
+             (e.members_count - s.members_count)::numeric / s.members_count * 100, 2
+         )
+    END AS delta_pct
+FROM snap_end e
+LEFT JOIN snap_start s ON true;
+$$;
+
+
+-- =============================================================================
+-- erday_series_prev: ERday по дням для предыдущего периода той же длины.
+-- =============================================================================
+CREATE OR REPLACE FUNCTION erday_series_prev(p_date_from date, p_date_to date)
+RETURNS TABLE (
+    post_date  date,
+    er_day     numeric
+) LANGUAGE sql STABLE AS $$
+WITH
+  delta AS (SELECT p_date_to - p_date_from AS days),
+  prev_from AS (SELECT p_date_from - (SELECT days FROM delta) - 1 AS d),
+  prev_to   AS (SELECT p_date_from - 1 AS d),
+  latest_members AS (SELECT members_count FROM groups_raw ORDER BY snapshot_at DESC LIMIT 1),
+  daily AS (
+      SELECT post_date, SUM(reactions_total) AS r_day
+        FROM posts_view
+       WHERE post_date BETWEEN (SELECT d FROM prev_from) AND (SELECT d FROM prev_to)
+       GROUP BY post_date
+  )
+SELECT
+    d.post_date,
+    CASE WHEN lm.members_count = 0 THEN NULL
+         ELSE ROUND(d.r_day::numeric / lm.members_count * 100, 4)
+    END
+FROM daily d CROSS JOIN latest_members lm
+ORDER BY d.post_date;
+$$;
+
+
+-- =============================================================================
+-- views_series: суммарные просмотры по дням (текущий период).
+-- =============================================================================
+CREATE OR REPLACE FUNCTION views_series(p_date_from date, p_date_to date)
+RETURNS TABLE (
+    post_date    date,
+    total_views  bigint
+) LANGUAGE sql STABLE AS $$
+SELECT post_date, SUM(views_count)::bigint AS total_views
+FROM posts_view
+WHERE post_date BETWEEN p_date_from AND p_date_to
+GROUP BY post_date
+ORDER BY post_date;
+$$;
+
+
+-- =============================================================================
+-- views_series_prev: суммарные просмотры по дням для предыдущего периода.
+-- =============================================================================
+CREATE OR REPLACE FUNCTION views_series_prev(p_date_from date, p_date_to date)
+RETURNS TABLE (
+    post_date    date,
+    total_views  bigint
+) LANGUAGE sql STABLE AS $$
+WITH
+  delta     AS (SELECT p_date_to - p_date_from AS days),
+  prev_from AS (SELECT p_date_from - (SELECT days FROM delta) - 1 AS d),
+  prev_to   AS (SELECT p_date_from - 1 AS d)
+SELECT post_date, SUM(views_count)::bigint AS total_views
+FROM posts_view
+WHERE post_date BETWEEN (SELECT d FROM prev_from) AND (SELECT d FROM prev_to)
+GROUP BY post_date
+ORDER BY post_date;
+$$;

@@ -9,12 +9,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 import dash
 import dash_bootstrap_components as dbc
-from dash import Input, Output, State, dcc, html, callback
+from dash import Input, Output, callback, dcc, html
 
 from src.config import settings
-from src.dashboard.styles import BACKGROUND, PRIMARY, CARD_BG
+from src.dashboard.styles import BACKGROUND, CARD_BG
 
-# Инициализация приложения с поддержкой Dash Pages
 app = dash.Dash(
     __name__,
     use_pages=True,
@@ -27,49 +26,79 @@ app = dash.Dash(
 _TODAY = date.today()
 _DEFAULT_FROM = _TODAY - timedelta(days=7)
 
-# ── Хедер ──────────────────────────────────────────────────────────────────────
-header = dbc.Navbar(
+# ── Шапка ──────────────────────────────────────────────────────────────────────
+header = html.Div(
     dbc.Container(
-        [
-            dbc.NavbarBrand(
-                [
-                    html.Span("📊", style={"marginRight": "8px"}),
-                    "ЕДИНАЯ РОССИЯ — Аналитика аудитории",
-                ],
-                className="fw-bold",
-                style={"color": "white", "fontSize": "1.1rem"},
-            ),
-            dbc.Nav(
-                [
-                    dbc.NavItem(dbc.NavLink("Обзор", href="/", active="exact",
-                                            style={"color": "rgba(255,255,255,0.85)"})),
-                    dbc.NavItem(dbc.NavLink("Статистика", href="/statistics", active="exact",
-                                            style={"color": "rgba(255,255,255,0.85)"})),
-                ],
-                navbar=True,
-                className="ms-3",
-            ),
+        html.Div([
+            # Левая часть: логотип + заголовок
+            html.Div([
+                html.Img(
+                    src="/assets/header_logo.png",
+                    style={"height": "36px", "width": "auto", "marginRight": "12px"},
+                ),
+                dcc.Link(
+                    "Аналитический дашборд сообщества «Единая Россия» во ВКонтакте",
+                    href="/",
+                    style={
+                        "fontWeight": "700",
+                        "fontSize": "1rem",
+                        "color": "#0f172a",
+                        "lineHeight": "1.2",
+                        "textDecoration": "none",
+                        "cursor": "pointer",
+                    },
+                ),
+            ], style={"display": "flex", "alignItems": "center"}),
+
+            # Центр: навигация
+            html.Div([
+                dbc.Nav([
+                    dbc.NavItem(dbc.NavLink(
+                        "Обзор", href="/", active="exact",
+                        style={"color": "#0f172a", "fontWeight": "500", "padding": "6px 16px"},
+                    )),
+                    dbc.NavItem(dbc.NavLink(
+                        "Статистика", href="/statistics", active="exact",
+                        style={"color": "#0f172a", "fontWeight": "500", "padding": "6px 16px"},
+                    )),
+                ], navbar=True),
+            ]),
+
+            # Правая часть: дата-пикер в виде пилюли
             html.Div(
                 dcc.DatePickerRange(
                     id="date-picker",
                     start_date=_DEFAULT_FROM,
                     end_date=_TODAY,
+                    max_date_allowed=_TODAY,
                     display_format="DD.MM.YYYY",
                     first_day_of_week=1,
-                    style={"fontSize": "0.875rem"},
+                    style={
+                        "fontSize": "0.875rem",
+                        "borderRadius": "9999px",
+                        "border": "1px solid #e2e8f0",
+                        "padding": "0",
+                    },
                 ),
-                className="ms-auto",
             ),
-        ],
+        ], style={
+            "display": "flex",
+            "alignItems": "center",
+            "justifyContent": "space-between",
+            "padding": "12px 0",
+        }),
         fluid=True,
     ),
-    color=PRIMARY,
-    dark=True,
-    sticky="top",
-    style={"boxShadow": "0 2px 8px rgba(0,0,0,0.15)"},
+    style={
+        "backgroundColor": CARD_BG,
+        "borderBottom": "1px solid #e2e8f0",
+        "position": "sticky",
+        "top": "0",
+        "zIndex": "1000",
+        "boxShadow": "0 1px 3px rgba(15,23,42,0.06)",
+    },
 )
 
-# ── Хранилище дат (глобальное состояние) ──────────────────────────────────────
 date_store = dcc.Store(
     id="date-store",
     data={"date_from": _DEFAULT_FROM.isoformat(), "date_to": _TODAY.isoformat()},
@@ -82,10 +111,10 @@ app.layout = html.Div(
         dbc.Container(
             dash.page_container,
             fluid=True,
-            style={"paddingTop": "24px", "paddingBottom": "40px"},
+            style={"paddingTop": "24px", "paddingBottom": "40px", "maxWidth": "1440px"},
         ),
     ],
-    style={"backgroundColor": BACKGROUND},
+    style={"backgroundColor": BACKGROUND, "fontFamily": 'Inter, -apple-system, "Segoe UI", sans-serif'},
 )
 
 
@@ -114,7 +143,6 @@ if __name__ == "__main__":
         encoding="utf-8",
     )
 
-    # Запускаем планировщик парсинга в фоне
     if not settings.dash_debug:
         from src.scheduler import start_scheduler
         _scheduler = start_scheduler()
