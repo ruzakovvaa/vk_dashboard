@@ -143,10 +143,6 @@ if __name__ == "__main__":
         encoding="utf-8",
     )
 
-    if not settings.dash_debug:
-        from src.scheduler import start_scheduler
-        _scheduler = start_scheduler()
-
     app.run(
         host=settings.dash_host,
         port=settings.dash_port,

@@ -1,19 +1,19 @@
-# Эталонные значения метрик для сообществ ВКонтакте с аудиторией >1 млн подписчиков
+# Эталонные значения метрик для сообществ ВКонтакте с аудиторией 200 000 – 500 000 подписчиков
 # Источник: Popsters Social Media Users Activity Global Report 2023, с. 42
 # Олухов Н.В., 2025
 
-audience_segment: ">1M"
+audience_segment: "200K–500K"
 
 benchmarks:
   er_post:
-    norm: 0.06       # %
+    norm: 0.16       # %
     label: "ERpost"
-    source: "Popsters 2023, с. 42"
+    source: "Popsters 2023, с. 42 (сегмент 200 000–500 000)"
 
   er_day:
-    norm: 0.59       # %
+    norm: 1.15       # %
     label: "ERday"
-    source: "Popsters 2023, с. 42"
+    source: "Popsters 2023, с. 42 (сегмент 200 000–500 000)"
 
   er_view:
     norm: 2.0        # %
